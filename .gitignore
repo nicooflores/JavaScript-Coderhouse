@@ -1,2 +1,10 @@
 #Ignorar el archivo viejo de la primera entrega
 /js/viejo.js
+
+#Ignorar el estilo viejo
+style.css
+
+#Ignorar sass
+/scss
+*.json
+/node_modules

@@ -1,6 +1,8 @@
+//-------------------- VARIABLES
+const stock = [], carrito = [];
+let cantCarrito = document.querySelector("#cantCarrito");
 
-const carrito = [], stock = [];
-
+//-------------------- CONSTRUCTORES
 class Productos {
     constructor(id, categoria, nombre, precio, cantidad) {
         this.id = id;
@@ -11,6 +13,65 @@ class Productos {
     }
 }
 
+//-------------------- FUNCIONES
+const cargarProductos = (producto) => {
+    const divProductos = document.querySelector("#divProductos");
+    divProductos.innerHTML += `
+        <div class="col">
+            <div class="card text-center mb-3" style="width: 20rem;">
+                <div class="card-body">
+                    <h5 class="card-title">${producto.nombre}</h5>
+                    <p class="card-text">Precio: $${producto.precio}</p>
+                    <input type="number" min="0" value=0 id="cant${producto.id}">
+                    <button type="button" class="btn btn-outline-primary" id="btn${producto.id}">Comprar</button>
+                </div>
+            </div>
+        </div>
+    `
+}
+
+const agregarCarrito = (id) => {
+
+    let cantidad = document.querySelector("#cant" + id);
+    let posicion = carrito.findIndex(producto => producto.id === id); //-1 si no existe
+    let producto = stock.find(producto => producto.id === id);
+
+    if (cantidad.value != "" && cantidad.value != 0) {
+        if (posicion != -1) {
+            carrito[posicion].cantidad = parseInt(carrito[posicion].cantidad) + parseInt(cantidad.value);
+        }
+        else {
+            producto.cantidad = cantidad.value;
+            carrito.push(producto);
+            let cant;
+            if(parseInt(cantCarrito.innerText)){
+                cant = parseInt(cantCarrito.innerText) + 1;
+            }else{
+                cant = 1;
+            }
+            console.log(cant);
+            cantCarrito.innerText = cant.toString();
+        }
+        cantidad.value = 0;
+    }
+    else {
+        alert("Ingrese una cantidad válida.")
+    }
+    console.log(carrito)
+}
+
+const finalizarCompra = () => {
+    let totalCosto = 0, totalCant = 0;
+    for (const elemento of carrito) {
+        totalCosto += parseFloat(elemento.precio) * parseInt(elemento.cantidad);
+        totalCant += parseInt(elemento.cantidad);
+    }
+
+    confirm("El total de su compra de " + totalCant + " productos, es de:\n        $" + totalCosto);
+}
+
+
+//Carga de stock
 const ginBeefeaterPink = new Productos("Pink", "Bebidas", "Gin Beefeater London Pink", 8000, 0);
 const ginBeefeaterOrange = new Productos("Orange", "Bebidas", "Gin Beefeater London Orange", 8000, 0);
 const ginBeefeaterLondon = new Productos("London", "Bebidas", "Gin Beefeater London", 7000, 0);
@@ -26,123 +87,28 @@ stock.push(ginBrighton);
 stock.push(ginGordon);
 stock.push(ginHendrick);
 
-/*
-const divProductos = document.querySelector("#divProductos");
-divProductos.innerHTML = `
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginBeefeaterPink.nombre}</h5>
-                    <p class="card-text">Precio: ${ginBeefeaterPink.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginBeefeaterPink.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginBeefeaterPink.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginBeefeaterOrange.nombre}</h5>
-                    <p class="card-text">Precio: ${ginBeefeaterOrange.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginBeefeaterOrange.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginBeefeaterOrange.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginBeefeaterLondon.nombre}</h5>
-                    <p class="card-text">Precio: ${ginBeefeaterLondon.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginBeefeaterLondon.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginBeefeaterLondon.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginBombay.nombre}</h5>
-                    <p class="card-text">Precio: ${ginBombay.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginBombay.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginBombay.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginBrighton.nombre}</h5>
-                    <p class="card-text">Precio: ${ginBrighton.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginBrighton.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginBrighton.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginGordon.nombre}</h5>
-                    <p class="card-text">Precio: ${ginGordon.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginGordon.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginGordon.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card text-center mb-3" style="width: 20rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${ginHendrick.nombre}</h5>
-                    <p class="card-text">Precio: ${ginHendrick.precio}</p>
-                    <input type="number" min="0" value=0 id="cant${ginHendrick.id}">
-                    <br>
-                    <button type="button" class="btn btn-primary" id="btn${ginHendrick.id}">Comprar</button>
-                </div>
-            </div>
-        </div>
-`
-*/
-function agregarCarrito(id) {
-
-    let cantidad = document.querySelector("#cant" + id);
-    let posicion = carrito.findIndex(producto => producto.id === id); //-1 si no existe
-    let producto = stock.find(producto => producto.id === id);
-
-    console.log(cantidad.value);
-
-    if (cantidad.value != "" && cantidad.value != 0) {
-        if (posicion != -1) {
-            carrito[posicion].cantidad = parseInt(carrito[posicion].cantidad) + parseInt(cantidad.value);
-        }
-        else {
-            producto.cantidad = cantidad.value;
-            carrito.push(producto);
-        }
-    }
-    else{
-        alert("Ingrese una cantidad válida.")
-    }
+for (const producto of stock) {
+    cargarProductos(producto);
 }
 
-function finalizarCompra() {
-    let totalCosto = 0, totalCant = 0;
-    for (const elemento of carrito) {
-        totalCosto += parseFloat(elemento.precio) * parseInt(elemento.cantidad);
-        totalCant += parseInt(elemento.cantidad);
+//Carga del carrito del local storage
+const carritoExistente = JSON.parse(localStorage.getItem("carrito"));
+if (carritoExistente) {
+    let cant = 0;
+    for (const producto of carritoExistente) {
+        carrito.push(producto);
+        cant += 1;
     }
-
-    confirm("El total de su compra de " + totalCant + " productos, es de:\n        $" + totalCosto);
+    if(cant!=0){cantCarrito.innerText = cant.toString();}
 }
+
+
+
+//Index
 
 const btnPink = document.querySelector("#btn" + ginBeefeaterPink.id);
 btnPink.onclick = () => { agregarCarrito(ginBeefeaterPink.id); }
-let btnOrange = document.querySelector("#btn" + ginBeefeaterOrange.id);
+const btnOrange = document.querySelector("#btn" + ginBeefeaterOrange.id);
 btnOrange.onclick = () => { agregarCarrito(ginBeefeaterOrange.id); }
 const btnLondon = document.querySelector("#btn" + ginBeefeaterLondon.id);
 btnLondon.onclick = () => { agregarCarrito(ginBeefeaterLondon.id); }
@@ -155,19 +121,12 @@ btnGordon.onclick = () => { agregarCarrito(ginGordon.id); }
 const btnHendrick = document.querySelector("#btn" + ginHendrick.id);
 btnHendrick.onclick = () => { agregarCarrito(ginHendrick.id); }
 
-
-const btnFinalizar = document.querySelector("#btnFinalizar");
-btnFinalizar.onclick = () => { finalizarCompra(); }
-
-
-
-
-
-
-
-
-
-
-
+const btnCarrito = document.querySelector("#btnCarrito");
+btnCarrito.onclick = () => {
+    let carritoJson = JSON.stringify(carrito);
+    localStorage.setItem("carrito", carritoJson);
+    carrito.slice(0, carrito.length);
+    window.location.href = "/pages/compras.html";
+}
 
 
