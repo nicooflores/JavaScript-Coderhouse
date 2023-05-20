@@ -1,41 +1,12 @@
 //---------------  VARIABLES
 let cantCarrito = document.querySelector("#cantCarrito");
-const carrito = JSON.parse(localStorage.getItem("carrito"));
+const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 let total = 0;
 const precioTotal = document.querySelector("#precioTotal");
+precioTotal.innerText = "$0";
+const btnCancelar = document.querySelector("#btnCancelar");
+const btnConfirmar = document.querySelector("#btnConfirmar");
 
-//---------------  FUNCIONES
-// const valores = (valor) => {
-//     let nuevo = '';
-//     console.log(parseInt(valor.length));
-//     if (valor.length > 3) {
-
-//         if (valor.length % 3 == 0) {
-//             let j = 3
-//             for (let i = parseInt(valor.length / 3); i > 0; i--) {
-//                 nuevo += valor.slice(j - 3, j) + ".";
-//                 j += 3;
-//                 console.log(nuevo+"1");
-//             }
-//         } else {
-//             nuevo += valor.slice(0, valor.length % 3) + ".";
-//             let j = valor.length % 3 + 3;
-//             for (let i = parseInt(valor.length / 3); i > 0; i--) {
-//                 nuevo += valor.slice(j - 3, j) + ".";
-//                 j += 3;
-//                 console.log(nuevo+"2");
-//             }
-//         }
-//     } else {
-//         nuevo = valor;
-//         console.log(nuevo+"3");
-//     }
-//     if (nuevo[nuevo.length - 1] === ".") { 
-//         // nuevo = nuevo.slice(0, nuevo.length - 1); 
-//         nuevo = nuevo.pop();
-//     }
-//     return nuevo;
-// }
 
 const cargarCarrito = () => {
     let listaProductos = document.querySelector("#listaProductos");
@@ -53,30 +24,58 @@ const cargarCarrito = () => {
                     <p id = "cant${producto.id}">${producto.cantidad}</p>
                     <img src="/resources/images/plus.svg" alt="Mas" id="plus${producto.id}" onclick = "masCant(this.id)">
                 </div>
-                <p class = "subtotal">$${producto.precio * producto.cantidad}</p>
+                <p class = "subtotal" id = "sub${producto.id}" >$${producto.precio * producto.cantidad}</p>
                 <div class = "borrar"><img src="/resources/images/trash.svg" alt="Tacho de Basura" id="borrar${producto.id}" onclick = "borrarProducto(this.id)"></div>
             </li>
             `
         cant += 1;
         total += producto.cantidad * producto.precio
     }
-    precioTotal.innerText = total.toString();
+    precioTotal.innerText = "$" + total.toString();
     if (cant != 0) { cantCarrito.innerText = cant.toString(); }
 }
 
 const borrarProducto = (id) => {
-    const idBorrar = id.substring(6);
-    const index = carrito.findIndex((e) => e.id === idBorrar);
-    carrito.splice(index, 1);
-    const productoLista = document.querySelector("#list" + idBorrar);
-    productoLista.remove();
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    cantCarrito.innerText = carrito.length.toString();
+
+    Swal.fire({
+        title: '¿Deseas borrar el producto?',
+        // text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, borrar',
+        cancelButtonText: 'Cancelar'
+    })
+    .then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Eliminado',
+                // text: 'Your file has been deleted.',
+                icon: 'success',
+                timer: 1800,
+                showConfirmButton: false,
+            })
+            const idBorrar = id.substring(6);
+            const index = carrito.findIndex((e) => e.id === idBorrar);
+            const cantBorrar = parseInt(document.querySelector("#cant" + idBorrar).innerText);
+            total -= (parseInt(carrito[index].precio) * cantBorrar);
+            precioTotal.innerText = "$" + total.toString();
+            carrito.splice(index, 1);
+            const productoLista = document.querySelector("#list" + idBorrar);
+            productoLista.remove();
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+            cantCarrito.innerText = carrito.length.toString();
+            
+        }
+    })
 }
 
-const actualizarCant = (id, cantidad) => {
+const actualizarCant = (id, cantidad, precio) => {
     const pCant = document.querySelector("#cant" + id);
     pCant.innerText = cantidad;
+    const pSub = document.querySelector("#sub" + id);
+    pSub.innerText = "$" + (parseInt(cantidad) * parseInt(precio)).toString();
     localStorage.setItem("carrito", JSON.stringify(carrito));
 }
 
@@ -84,44 +83,92 @@ const masCant = (id) => {
     const idBorrar = id.substring(4);
     const productoMas = carrito.find((e) => e.id === idBorrar);
     productoMas.cantidad = parseInt(productoMas.cantidad) + 1;
-    total += productoMas.precio;
-    precioTotal.innerText = total;
+    total += parseInt(productoMas.precio);
+    precioTotal.innerText = "$" + total.toString();
+    console.log(total, "--", productoMas.precio);
     // console.log(carrito);
-    actualizarCant(idBorrar, productoMas.cantidad);
+    actualizarCant(idBorrar, productoMas.cantidad, productoMas.precio);
 }
 
 const menosCant = (id) => {
     const idBorrar = id.substring(4);
     const productoMenos = carrito.find((e) => e.id === idBorrar);
-    productoMenos.cantidad = parseInt(productoMenos.cantidad) - 1;
-    total -= productoMenos.precio;
-    precioTotal.innerText = total;
-    // console.log(carrito);
-    if (productoMenos.cantidad == 0) {
+
+    if (productoMenos.cantidad == 1) {
+        // console.log(borrado + "  after");
         borrarProducto("borrar" + idBorrar);
+        // if (borrado) {
+        //     total -= productoMenos.precio;
+        //     precioTotal.innerText = "$" + total.toString();
+            
+        // }
+        // console.log("se paso");
     }
     else {
-        actualizarCant(idBorrar, productoMenos.cantidad);
+        productoMenos.cantidad = parseInt(productoMenos.cantidad) - 1;
+        actualizarCant(idBorrar, productoMenos.cantidad, productoMenos.precio);
+        total -= productoMenos.precio;
+        precioTotal.innerText = "$" + total.toString();
     }
 }
 
 
 //--------------  EJECUCION
-cargarCarrito();
 
-const btnCancelar = document.querySelector("#btnCancelar");
+carrito.length !== 0 && cargarCarrito();
+
 btnCancelar.onclick = () => {
-    if (confirm("Desea limpiar el carrito de compras?")) {
-        carrito.splice(0, carrito.length);
-        localStorage.removeItem('carrito');
-        window.location.href = "/index.html";
-    }
+
+    Swal.fire({
+        title: '¿Deseas Limpiar el Carrito?',
+        text: "Perderas todos los productos cargados!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, borrar',
+        cancelButtonText: 'Cancelar'
+    })
+    .then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Eliminado',
+                // text: 'Your file has been deleted.',
+                icon: 'success',
+                timer: 1800,
+                showConfirmButton: false,
+            })
+            carrito.splice(0, carrito.length);
+            localStorage.removeItem('carrito');
+            setTimeout(()=>{window.location.href = "../index.html";},1700);
+        }
+    })
 }
 
-const btnConfirmar = document.querySelector("#btnConfirmar");
+
 btnConfirmar.onclick = () => {
-    alert("Gracias por su compra.");
-    localStorage.removeItem("carrito");
+
+    Swal.fire({
+        title: '¿Desea proceder al pago de los productos?',
+        text: 'El valor total de la compra es: $'+total,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+
+        showClass: {
+          popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp'
+        }
+    })
+    .then((result) => {
+        if (result.isConfirmed) {window.location.href = "./pago.html";}
+    })
+
 }
 
 
